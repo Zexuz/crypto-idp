@@ -6,6 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/go-chi/render"
 	"github.com/zexuz/crypto-idp/api/types"
+	"github.com/zexuz/crypto-idp/internal/jwt"
 	"log"
 	"net/http"
 )
@@ -89,8 +90,15 @@ func (env *Env) Callback(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	// TODO create a jwt token and return it
+
+	token, err := jwt.GetNewToken(requestBody.PublicAddress)
+	if err != nil {
+		types.FailureResponse("Could not create token", writer, request)
+		return
+	}
+
 	response := CallbackResponse{
-		Jwt: "jwt",
+		Jwt: token,
 	}
 
 	types.SuccessResponse(response, writer, request)
