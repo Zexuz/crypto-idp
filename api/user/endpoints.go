@@ -1,4 +1,4 @@
-package nonce
+package user
 
 import (
 	"github.com/go-chi/chi/v5"
@@ -9,18 +9,13 @@ type Env struct {
 	db *database.UserDatabaseService
 }
 
-type Response struct {
-	Nonce string `json:"nonce"`
-}
-
 func Routes(db *database.UserDatabaseService) *chi.Mux {
 	env := &Env{
 		db: db,
 	}
 	r := chi.NewRouter()
 
-	r.Get("/", env.RequestNonce)
-	r.Post("/", env.Callback)
+	r.Post("/", env.Me)
 
 	return r
 }
