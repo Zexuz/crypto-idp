@@ -1,6 +1,8 @@
 package api
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -10,7 +12,7 @@ import (
 	"net/http"
 )
 
-func StartServer() {
+func StartServer(errC chan error) *http.Server {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 
@@ -21,6 +23,17 @@ func StartServer() {
 		r.Mount("/v1/me", user.Routes(db))
 	})
 
-	println(fmt.Sprintf("Server started on port %d", 3000))
-	http.ListenAndServe(":3000", r)
+	server := &http.Server{Addr: ":3000", Handler: r}
+
+	_, cancel := context.WithCancel(context.Background())
+	go func() {
+		if err := server.ListenAndServe(); err != http.ErrServerClosed {
+			cancel()
+			errC <- errors.New("ServerHTTP: server.http.ListenAndServe(): " + err.Error())
+		}
+		println(fmt.Sprintf("Server started on port %d", 3000))
+	}()
+
+	return server
+
 }
