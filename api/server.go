@@ -14,14 +14,9 @@ import (
 
 func StartServer(errC chan error) *http.Server {
 	r := chi.NewRouter()
-	r.Use(middleware.Logger)
 
-	db := database.NewDatabase()
-
-	r.Route("/api", func(r chi.Router) {
-		r.Mount("/v1/nonce", nonce.Routes(db))
-		r.Mount("/v1/me", user.Routes(db))
-	})
+	addMiddleware(r)
+	addRoutes(r)
 
 	server := &http.Server{Addr: ":3000", Handler: r}
 
@@ -35,5 +30,18 @@ func StartServer(errC chan error) *http.Server {
 	}()
 
 	return server
+}
 
+func addRoutes(r *chi.Mux) {
+	db := database.NewDatabase()
+
+	r.Route("/api", func(r chi.Router) {
+		r.Mount("/v1/nonce", nonce.Routes(db))
+		r.Mount("/v1/me", user.Routes(db))
+	})
+}
+
+func addMiddleware(r *chi.Mux) {
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 }
