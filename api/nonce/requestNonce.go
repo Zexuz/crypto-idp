@@ -31,6 +31,7 @@ func (env *Env) RequestNonce(writer http.ResponseWriter, request *http.Request) 
 
 	token, err := jwt.GetNewNonceToken(publicAddress, n)
 	if err != nil {
+		println(err.Error())
 		types.FailureResponse("Could not generate token", writer, request)
 		return
 	}

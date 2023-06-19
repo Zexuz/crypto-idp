@@ -21,11 +21,11 @@ func StartServer(errC chan error) *http.Server {
 
 	_, cancel := context.WithCancel(context.Background())
 	go func() {
+		println(fmt.Sprintf("Server started on port %d", 3000))
 		if err := server.ListenAndServe(); err != http.ErrServerClosed {
 			cancel()
 			errC <- errors.New("ServerHTTP: server.http.ListenAndServe(): " + err.Error())
 		}
-		println(fmt.Sprintf("Server started on port %d", 3000))
 	}()
 
 	return server
