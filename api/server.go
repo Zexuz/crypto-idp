@@ -8,7 +8,6 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/zexuz/crypto-idp/api/nonce"
 	"github.com/zexuz/crypto-idp/api/user"
-	"github.com/zexuz/crypto-idp/internal/database"
 	"net/http"
 )
 
@@ -33,11 +32,10 @@ func StartServer(errC chan error) *http.Server {
 }
 
 func addRoutes(r *chi.Mux) {
-	db := database.NewDatabase()
 
 	r.Route("/api", func(r chi.Router) {
-		r.Mount("/v1/nonce", nonce.Routes(db))
-		r.Mount("/v1/me", user.Routes(db))
+		r.Mount("/v1/nonce", nonce.Routes())
+		r.Mount("/v1/me", user.Routes())
 	})
 }
 
