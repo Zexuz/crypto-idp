@@ -12,3 +12,6 @@ sudo systemctl start docker.service
 ### Setup docker login
 aws ecr get-login-password --region eu-north-1 | sudo docker login --username AWS --password-stdin 530826328503.dkr.ecr.eu-north-1.amazonaws.com
 
+
+### push image https://eu-north-1.console.aws.amazon.com/ecr/repositories/private/530826328503/dev?region=eu-north-1
+
