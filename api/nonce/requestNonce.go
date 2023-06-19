@@ -3,12 +3,13 @@ package nonce
 import (
 	"fmt"
 	"github.com/zexuz/crypto-idp/api/types"
+	"github.com/zexuz/crypto-idp/internal/jwt"
 	"github.com/zexuz/crypto-idp/internal/nonce"
 	"net/http"
 )
 
 type RequestNonceResponse struct {
-	Nonce string `json:"nonce"`
+	Token string `json:"token"`
 }
 
 const publicAddressQueryParam = "publicAddress"
@@ -28,13 +29,14 @@ func (env *Env) RequestNonce(writer http.ResponseWriter, request *http.Request) 
 		return
 	}
 
-	if err = env.db.SetUserNonce(publicAddress, n); err != nil {
-		types.FailureResponse("Could not set nonce", writer, request)
+	token, err := jwt.GetNewNonceToken(publicAddress, n)
+	if err != nil {
+		types.FailureResponse("Could not generate token", writer, request)
 		return
 	}
 
 	response := RequestNonceResponse{
-		Nonce: n,
+		Token: token,
 	}
 
 	types.SuccessResponse(response, writer, request)

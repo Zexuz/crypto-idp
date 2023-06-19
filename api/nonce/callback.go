@@ -16,15 +16,14 @@ type CallbackResponse struct {
 }
 
 type CallbackRequest struct {
-	Signature     string `json:"signature"`
-	PublicAddress string `json:"publicAddress"`
+	Signature string `json:"signature"`
+	JwtToken  string `json:"jwtToken"`
 }
 
 func (d *CallbackRequest) Bind(request *http.Request) error {
 	return nil
 }
 
-// message is "publicAddress:nonce"
 func (env *Env) Callback(writer http.ResponseWriter, request *http.Request) {
 	// TODO get the publicAddress and nonce from the request body
 
@@ -34,21 +33,18 @@ func (env *Env) Callback(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	nonce, err := env.db.GetUserNonce(requestBody.PublicAddress)
+	tokenStr := requestBody.JwtToken
+	receivedToken, err := jwt.VerifyToken(tokenStr)
 	if err != nil {
-		types.FailureResponse("Could not get nonce", writer, request)
+		types.FailureResponse("Could not verify receivedToken", writer, request)
 		return
 	}
 
-	if nonce == "" {
-		types.FailureResponse("Nonce is empty", writer, request)
+	signerAddress, err := jwt.GetSubClaimsFromToken(receivedToken)
+	if signerAddress == "" {
+		types.FailureResponse("Signer address is empty", writer, request)
 		return
 	}
-
-	originalMessage := nonce
-
-	// This is the signer's address
-	signerAddress := requestBody.PublicAddress
 
 	// This is your signed message (retrieved from MetaMask)
 	signatureHex := requestBody.Signature                // This is a hexadecimal string
@@ -60,7 +56,7 @@ func (env *Env) Callback(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	// Add prefix to original message
-	prefixedMessage := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(originalMessage), originalMessage)
+	prefixedMessage := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(tokenStr), tokenStr)
 
 	// Hash the prefixed message
 	hash := crypto.Keccak256Hash([]byte(prefixedMessage))
@@ -89,11 +85,9 @@ func (env *Env) Callback(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	// TODO create a jwt token and return it
-
-	token, err := jwt.GetNewToken(requestBody.PublicAddress)
+	token, err := jwt.GetNewToken(signerAddress)
 	if err != nil {
-		types.FailureResponse("Could not create token", writer, request)
+		types.FailureResponse("Could not create receivedToken", writer, request)
 		return
 	}
 
