@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/zexuz/crypto-idp/api/nonce"
 	"github.com/zexuz/crypto-idp/api/user"
 	"net/http"
+	"regexp"
 )
 
 func StartServer(errC chan error) *http.Server {
@@ -42,4 +44,20 @@ func addRoutes(r *chi.Mux) {
 func addMiddleware(r *chi.Mux) {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(cors.Handler(cors.Options{
+		AllowOriginFunc:  AllowOriginFunc,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+	}))
+}
+
+func AllowOriginFunc(r *http.Request, origin string) bool {
+	if matched, _ := regexp.MatchString("http://localhost:[0-9]+", origin); matched {
+		return true
+	}
+
+	return false
 }

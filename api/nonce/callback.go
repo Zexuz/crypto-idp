@@ -29,20 +29,20 @@ func (env *Env) Callback(writer http.ResponseWriter, request *http.Request) {
 
 	requestBody := &CallbackRequest{}
 	if err := render.DecodeJSON(request.Body, requestBody); err != nil {
-		types.FailureResponse("Could not decode request body", writer, request)
+		types.FailureResponse("Could not decode request body", writer, request, http.StatusBadRequest)
 		return
 	}
 
 	tokenStr := requestBody.JwtToken
 	receivedToken, err := jwt.VerifyToken(tokenStr)
 	if err != nil {
-		types.FailureResponse("Could not verify receivedToken", writer, request)
+		types.FailureResponse("Could not verify receivedToken", writer, request, http.StatusBadRequest)
 		return
 	}
 
 	signerAddress, err := jwt.GetSubClaimsFromToken(receivedToken)
 	if signerAddress == "" {
-		types.FailureResponse("Signer address is empty", writer, request)
+		types.FailureResponse("Signer address is empty", writer, request, http.StatusBadRequest)
 		return
 	}
 
@@ -51,7 +51,7 @@ func (env *Env) Callback(writer http.ResponseWriter, request *http.Request) {
 	signature, err := hex.DecodeString(signatureHex[2:]) // Convert from hexadecimal string to byte slice, omitting the "0x" prefix
 	if err != nil {
 		msg := fmt.Sprintf("Invalid signature format: %v", err)
-		types.FailureResponse(msg, writer, request)
+		types.FailureResponse(msg, writer, request, http.StatusBadRequest)
 		return
 	}
 
@@ -63,7 +63,7 @@ func (env *Env) Callback(writer http.ResponseWriter, request *http.Request) {
 
 	if len(signature) != 65 {
 		msg := fmt.Sprintf("wrong size for signature: got %d, want 65", len(signature))
-		types.FailureResponse(msg, writer, request)
+		types.FailureResponse(msg, writer, request, http.StatusBadRequest)
 		return
 	}
 
@@ -81,13 +81,13 @@ func (env *Env) Callback(writer http.ResponseWriter, request *http.Request) {
 	// Verify the recovered address with the signer's address
 	if recoveredAddr.Hex() != signerAddress {
 		msg := fmt.Sprintf("recovered address does not match signer address: got %s, want %s", recoveredAddr.Hex(), signerAddress)
-		types.FailureResponse(msg, writer, request)
+		types.FailureResponse(msg, writer, request, http.StatusBadRequest)
 		return
 	}
 
 	token, err := jwt.GetNewToken(signerAddress)
 	if err != nil {
-		types.FailureResponse("Could not create receivedToken", writer, request)
+		types.FailureResponse("Could not create receivedToken", writer, request, http.StatusBadRequest)
 		return
 	}
 
