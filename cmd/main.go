@@ -10,11 +10,6 @@ import (
 	"time"
 )
 
-type User struct {
-	PublicAddress string `json:"publicAddress"`
-	Nonce         int    `json:"nonce"`
-}
-
 func main() {
 
 	defer func() {

@@ -2,25 +2,29 @@ package jwt
 
 import (
 	"crypto/rsa"
+	"errors"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
-	"log"
 	"os"
 	"path"
 	"runtime"
 )
 
-func currentFileDir() string {
+func currentFileDir() (string, error) {
 	_, filename, _, ok := runtime.Caller(0)
 	if !ok {
-		log.Fatal("Could not get current file info")
+		return "", errors.New("could not get current file directory")
 	}
-	dir := path.Dir(filename)
-	return dir
+	return path.Dir(filename), nil
 }
 
 func getPrivateKey() (*rsa.PrivateKey, error) {
-	assetFilePath := path.Join(currentFileDir(), "../../assets/keys/private_key.pem")
+	dir, err := currentFileDir()
+	if err != nil {
+		return nil, err
+	}
+
+	assetFilePath := path.Join(dir, "../../assets/keys/private_key.pem")
 
 	privateKeyBytes, err := os.ReadFile(assetFilePath)
 	if err != nil {
@@ -36,7 +40,12 @@ func getPrivateKey() (*rsa.PrivateKey, error) {
 }
 
 func getPublicKey() (*rsa.PublicKey, error) {
-	assetFilePath := path.Join(currentFileDir(), "../../assets/keys/public_key.pem")
+	dir, err := currentFileDir()
+	if err != nil {
+		return nil, err
+	}
+
+	assetFilePath := path.Join(dir, "../../assets/keys/public_key.pem")
 
 	publicKeyBytes, err := os.ReadFile(assetFilePath)
 	if err != nil {

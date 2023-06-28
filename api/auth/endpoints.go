@@ -1,4 +1,4 @@
-package nonce
+package auth
 
 import (
 	"github.com/go-chi/chi/v5"
@@ -8,7 +8,7 @@ type Env struct {
 }
 
 type Response struct {
-	Nonce string `json:"nonce"`
+	Nonce string `json:"auth"`
 }
 
 func Routes() *chi.Mux {
