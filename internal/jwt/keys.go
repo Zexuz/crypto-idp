@@ -39,7 +39,7 @@ func getPrivateKey() (*rsa.PrivateKey, error) {
 	return privateKey, nil
 }
 
-func getPublicKey() (*rsa.PublicKey, error) {
+func GetPublicKey() (*rsa.PublicKey, error) {
 	dir, err := currentFileDir()
 	if err != nil {
 		return nil, err

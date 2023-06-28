@@ -44,7 +44,7 @@ func VerifyToken(tokenString string) (*jwt.Token, error) {
 			return nil, &UnexpectedSigningMethodError{token.Header["alg"].(string)}
 		}
 
-		pubKey, err := getPublicKey()
+		pubKey, err := GetPublicKey()
 		if err != nil {
 			return "", &PublicKeyRecoveryError{err}
 		}

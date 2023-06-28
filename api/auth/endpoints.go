@@ -17,6 +17,7 @@ func Routes() *chi.Mux {
 
 	r.Get("/", env.RequestNonce)
 	r.Post("/", env.Callback)
+	r.Get("/public-key", env.PublicKey)
 
 	return r
 }
